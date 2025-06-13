@@ -739,9 +739,9 @@ some of CPython's modules (for example, ``zlib``).
 
       $ sudo dnf install \
             gcc gcc-c++ gdb lzma glibc-devel libstdc++-devel openssl-devel \
-            readline-devel zlib-devel libffi-devel bzip2-devel xz-devel \
-            sqlite sqlite-devel sqlite-libs libuuid-devel gdbm-libs perf \
-            expat expat-devel mpdecimal python3-pip
+            readline-devel zlib-devel libzstd-devel libffi-devel bzip2-devel \
+            xz-devel sqlite sqlite-devel sqlite-libs libuuid-devel gdbm-libs \
+            perf expat expat-devel mpdecimal python3-pip
 
 
    On **Debian**, **Ubuntu**, and other ``apt``-based systems, try to get the
@@ -777,7 +777,7 @@ some of CPython's modules (for example, ``zlib``).
       $ sudo apt-get install build-essential gdb lcov pkg-config \
             libbz2-dev libffi-dev libgdbm-dev libgdbm-compat-dev liblzma-dev \
             libncurses5-dev libreadline6-dev libsqlite3-dev libssl-dev \
-            lzma lzma-dev tk-dev uuid-dev zlib1g-dev libmpdec-dev
+            lzma lzma-dev tk-dev uuid-dev zlib1g-dev libmpdec-dev libzstd-dev
 
    Note that Debian 12 and Ubuntu 24.04 do not have the ``libmpdec-dev`` package.  You can safely
    remove it from the install list above and the Python build will use a bundled version.
@@ -812,7 +812,7 @@ some of CPython's modules (for example, ``zlib``).
 
       For **Homebrew**, install dependencies using ``brew``::
 
-         $ brew install pkg-config openssl@3 xz gdbm tcl-tk mpdecimal
+         $ brew install pkg-config openssl@3 xz gdbm tcl-tk mpdecimal zstd
 
       .. tab:: Python 3.13+
 
@@ -853,7 +853,7 @@ some of CPython's modules (for example, ``zlib``).
 
       For **MacPorts**, install dependencies using ``port``::
 
-         $ sudo port install pkgconfig openssl xz gdbm tcl tk +quartz mpdecimal
+         $ sudo port install pkgconfig openssl xz gdbm tk +quartz mpdecimal zstd
 
       .. tab:: Python 3.13+
 
@@ -874,7 +874,7 @@ some of CPython's modules (for example, ``zlib``).
 
    And finally, run ``make``::
 
-      $ make -s -j $(nproc)
+      $ make -s -j8
 
    There will sometimes be optional modules added for a new release which
    won't yet be identified in the OS-level build dependencies. In those cases,
@@ -1186,7 +1186,45 @@ select the option ``Open in VS Code``. You will still be working on the remote
 codespace instance, thus using the remote instance's compute power. The compute
 power may be a much higher spec than your local machine which can be helpful.
 
-.. TODO: add docker instructions
+
+Building the container locally
+------------------------------
+
+If you want more control over the environment, or to work offline,
+you can build the container locally.
+This is meant for users who have (or want to get) some experience
+with containers.
+The following instructions are a starting point for
+your own customizations.
+They assume a Unix-like environment, and Docker or Podman installed.
+
+In a clone of the `cpython-devcontainers repo <https://github.com/python/cpython-devcontainers>`_,
+build the container and name it ``cpython-dev``:
+
+.. code-block:: bash
+
+   docker build devcontainer/ --tag cpython-dev
+
+(Substitute ``podman`` for ``docker`` if you use Podman.)
+
+The same command will update any existing ``cpython-dev`` container.
+Run it again from time to time -- especially if the container stops
+working for you.
+
+To run the container, run one of the following commands in a clone of the
+CPython repository.
+
+.. code-block:: bash
+
+   docker run -it --rm --volume $PWD:/workspace --workdir /workspace cpython-dev
+
+.. code-block:: bash
+
+   podman run -it --rm --volume $PWD:/workspace:Z --workdir /workspace cpython-dev
+
+Note that the container has read/write access to the working directory.
+You may want to use a separate clone of CPython, or run ``make clean``
+to remove caches and build output generated for your host OS.
 
 .. c_codespaces_end
 
